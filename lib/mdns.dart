@@ -1,13 +1,14 @@
 import 'package:flutter/services.dart';
 
-class ServiceInfo{
+class ServiceInfo {
   String name;
   String type;
   String host;
   int port;
+
   ServiceInfo(this.name, this.type, this.host, this.port);
 
-  static ServiceInfo fromMap(Map fromChannel){
+  static ServiceInfo fromMap(Map fromChannel) {
     String name = "";
     String type = "";
     String host = "";
@@ -17,15 +18,15 @@ class ServiceInfo{
       name = fromChannel["name"];
     }
 
-    if (fromChannel.containsKey("type")) {
+    if ( fromChannel.containsKey("type") ) {
       type = fromChannel["type"];
     }
 
-    if (fromChannel.containsKey("host")) {
+    if ( fromChannel.containsKey("host") ) {
       host = fromChannel["host"];
     }
 
-    if (fromChannel.containsKey("port")) {
+    if ( fromChannel.containsKey("port") ) {
       port = fromChannel["port"];
     }
 
@@ -33,20 +34,22 @@ class ServiceInfo{
   }
 
   @override
-  String toString(){
+  String toString() {
     return "Name: $name, Type: $type, Host: $host, Port: $port";
   }
 }
+
 typedef void ServiceInfoCallback(ServiceInfo info);
 
 typedef void IntCallback (int data);
 typedef void VoidCallback();
 
-class DiscoveryCallbacks{
+class DiscoveryCallbacks {
   VoidCallback onDiscoveryStarted;
   VoidCallback onDiscoveryStopped;
   ServiceInfoCallback onDiscovered;
   ServiceInfoCallback onResolved;
+
   DiscoveryCallbacks({
     this.onDiscoveryStarted,
     this.onDiscoveryStopped,
@@ -55,11 +58,11 @@ class DiscoveryCallbacks{
   });
 }
 
-class AdvertiseCallbacks{
+class AdvertiseCallbacks {
   VoidCallback onAdvertisingStarted;
   VoidCallback onAdvertisingStopped;
 
-  AdvertiseCallbacks ({
+  AdvertiseCallbacks({
     this.onAdvertisingStarted,
     this.onAdvertisingStopped,
   });
@@ -72,41 +75,43 @@ class Mdns {
   const MethodChannel('$NAMESPACE/mdns');
 
   final EventChannel _serviceDiscoveredChannel =
-      const EventChannel("$NAMESPACE/discovered");
+  const EventChannel("$NAMESPACE/discovered");
 
   final EventChannel _serviceResolvedChannel =
-    const EventChannel("$NAMESPACE/resolved");
+  const EventChannel("$NAMESPACE/resolved");
 
   final EventChannel _discoveryRunningChannel =
-    const EventChannel("$NAMESPACE/running");
+  const EventChannel("$NAMESPACE/running");
 
   DiscoveryCallbacks discoveryCallbacks;
   AdvertiseCallbacks advertiseCallbacks;
-  Mdns({this.discoveryCallbacks, this.advertiseCallbacks}){
 
+  Mdns({this.discoveryCallbacks, this.advertiseCallbacks}) {
     if ( discoveryCallbacks != null ) {
       //Configure all the discovery related callbacks and event channels
-      _serviceResolvedChannel.receiveBroadcastStream().listen((Map data) {
-        print("Service resolved ${data.toString()}");
-        discoveryCallbacks.onResolved(ServiceInfo.fromMap(data));
+      _serviceResolvedChannel.receiveBroadcastStream().listen((dynamic data) {
+        if ( data != null ) {
+          print("Service resolved ${data.toString()}");
+          discoveryCallbacks.onResolved(ServiceInfo.fromMap(data));
+        }
       });
 
-      _serviceDiscoveredChannel.receiveBroadcastStream().listen((Map data) {
+      _serviceDiscoveredChannel.receiveBroadcastStream().listen((dynamic data) {
         print("Service discovered ${data.toString()}");
         discoveryCallbacks.onDiscovered(ServiceInfo.fromMap(data));
       });
 
-      _discoveryRunningChannel.receiveBroadcastStream().listen((bool running) {
+      _discoveryRunningChannel.receiveBroadcastStream().listen((dynamic running) {
         print("Discovery Running? $running");
-        if (running && discoveryCallbacks.onDiscoveryStarted != null) {
+        if ( running && discoveryCallbacks.onDiscoveryStarted != null ) {
           discoveryCallbacks.onDiscoveryStarted();
-        } else if (discoveryCallbacks.onDiscoveryStopped != null) {
+        } else if ( discoveryCallbacks.onDiscoveryStopped != null ) {
           discoveryCallbacks.onDiscoveryStopped();
         }
       });
     }
 
-    if (advertiseCallbacks != null) {
+    if ( advertiseCallbacks != null ) {
       //TODO advertise stuff
     }
   }
@@ -117,7 +122,7 @@ class Mdns {
     _channel.invokeMethod("startDiscovery", args);
   }
 
-  stopDiscovery(){
+  stopDiscovery() {
     _channel.invokeMethod("stopDiscovery", new Map());
   }
 
